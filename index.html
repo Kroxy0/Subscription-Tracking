@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abonelik & Plan Takip</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js Grafik Kütüphanesi -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- İlk Giriş Uyarı Modalı -->
+  <div id="uyariModal" class="modal-overlay gizli">
+    <div class="modal-icerik">
+      <div class="modal-ikon">🔒</div>
+      <h2>Gizlilik & Veri Bilgilendirmesi</h2>
+      <p>Bu sitede girdiğiniz tüm bilgiler <strong>sadece kendi cihazınızda (yerel hafızada)</strong> saklanır. Verileriniz hiçbir sunucuya veya üçüncü tarafa gönderilmez.</p>
+      <button id="uyariTamamBtn" type="button" class="modal-btn">Anladım, Devam Et</button>
+    </div>
+  </div>
+
+  <header>
+    <h1>Abonelik & Plan Takip</h1>
+    <div class="ustSag">
+      <button id="temaBtn" class="tema" type="button" aria-label="Temayı değiştir">
+        <span class="yildiz"></span>
+        <span class="top">
+          <span class="krater k1"></span>
+          <span class="krater k2"></span>
+        </span>
+      </button>
+      <div class="bildirim">
+        <button id="zilBtn" class="zil" type="button" aria-label="Bildirimler">🔔<span id="rozet" class="rozet gizli">0</span></button>
+        <div id="zilPanel" class="panel gizli"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="ana-layout">
+    <!-- Sol Modül Menüsü -->
+    <aside class="ana-sidebar kart">
+      <h2>Modüller</h2>
+      <nav class="modul-liste">
+        <button type="button" class="modul-btn aktif" data-target="anaSayfaModul">
+          <span>🏠</span> Ana Sayfa
+        </button>
+        <button type="button" class="modul-btn" data-target="abonelikModul">
+          <span>💳</span> Abonelik Takip
+        </button>
+        <button type="button" class="modul-btn" data-target="takvimModul">
+          <span>📅</span> Takvim & Planlar
+        </button>
+        <button type="button" class="modul-btn" data-target="oyunModul">
+          <span>⌨️</span> Klavye Hız Testi
+        </button>
+      </nav>
+      <div class="sidebar-alt">
+        <button type="button" id="yedekIndirBtn" class="geri-btn" style="margin-bottom: 8px;">
+          <span>💾</span> Yedeği İndir
+        </button>
+        <button type="button" id="yedekYukleBtn" class="geri-btn" style="margin-bottom: 8px;">
+          <span>📂</span> Yedek Yükle
+        </button>
+        <input type="file" id="dosyaSecInput" accept=".json" class="gizli">
+
+        <button type="button" id="geriDonBtn" class="geri-btn">
+          <span>↩</span> Geri Dön / Sıfırla
+        </button>
+      </div>
+    </aside>
+
+    <!-- İçerik Alanı -->
+    <main class="icerik-alani">
+      
+      <!-- 0. ANA SAYFA MODÜLÜ -->
+      <div id="anaSayfaModul" class="modul-sayfa">
+        
+        <!-- PC Saat ve Hava Durumu Widget Alanı -->
+        <div class="pc-bilgi-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+          <div class="kart" style="display: flex; align-items: center; gap: 16px; padding: 20px;">
+            <span style="font-size: 32px;">⏰</span>
+            <div>
+              <small style="color: var(--soluk); font-size: 12px; display: block;">Yerel Saat & Tarih</small>
+              <strong id="pcSaat" style="font-size: 20px; color: var(--yazi);">00:00:00</strong>
+              <div id="pcTarih" style="font-size: 13px; color: var(--soluk);">Yükleniyor...</div>
+            </div>
+          </div>
+
+          <div class="kart" style="display: flex; align-items: center; gap: 16px; padding: 20px;">
+            <span style="font-size: 32px;" id="havaIkon">🌤️</span>
+            <div>
+              <small style="color: var(--soluk); font-size: 12px; display: block;">Hava Durumu (Cihaz Konumu)</small>
+              <strong id="pcHava" style="font-size: 18px; color: var(--yazi);">Hava bilgisi alınıyor...</strong>
+              <div id="pcKonum" style="font-size: 13px; color: var(--soluk);">Konum bekleniyor</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Abonelik Takibi Özeti Kartı -->
+        <div class="kart" style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2 style="margin: 0;">💳 Abonelik Özeti & Bütçe</h2>
+            <button type="button" class="geri-btn modul-gecis-btn" data-hedef="abonelikModul" style="width: auto; padding: 6px 12px; font-size: 12px;">Yönete Git ➔</button>
+          </div>
+          <div id="anaSayfaAbonelikOzet" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;"></div>
+        </div>
+
+        <!-- Canlı Döviz ve Kıymetli Madenler Kartı (10 Adet) -->
+        <div class="kart">
+          <div class="kur-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2 style="margin: 0;">💱 Canlı Döviz & Piyasa Kurları (10 Varlık)</h2>
+            <button type="button" id="kurlariGuncelleBtn" class="geri-btn" style="width: auto; padding: 6px 12px; font-size: 13px;">🔄 Yenile</button>
+          </div>
+          <div id="kurGrid" class="kur-grid">
+            <p style="color: var(--soluk); text-align: center; width: 100%; padding: 20px;">Kurlar yükleniyor...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. ABONELİK TAKİP MODÜLÜ -->
+      <div id="abonelikModul" class="modul-sayfa gizli">
+        <div class="duzen">
+          <aside class="sol kart">
+            <h2>Servis</h2>
+            <input type="text" id="ara" placeholder="Servis ara...">
+            <ul id="servisListe"></ul>
+
+            <div class="secim">
+              <p id="secimOzet">Henüz paket seçilmedi.</p>
+              <label for="tarihMetin">Yenileme tarihi</label>
+              <div class="tarihAlan">
+                <input type="text" id="tarihMetin" placeholder="gg.aa.yyyy" inputmode="numeric" maxlength="10" autocomplete="off">
+                <button id="takvimBtn" class="takvimBtn" type="button" aria-label="Takvimden seç">📅</button>
+                <input type="date" id="tarihSec" class="tarihSec" tabindex="-1" aria-hidden="true">
+              </div>
+              <button id="ekleBtn" type="button">Ekle</button>
+            </div>
+          </aside>
+
+          <section class="sagAlan">
+            <!-- 1. Paketler -->
+            <div class="kart">
+              <div class="paketUst">
+                <h2 id="paketBaslik">Paketler</h2>
+                <a id="paketLink" class="paketLink gizli" target="_blank" rel="noopener">Uygulamaya git</a>
+              </div>
+              <div id="paketler" class="paketler"></div>
+            </div>
+
+            <!-- 2. Aboneliklerim -->
+            <div class="kart">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h2 style="margin: 0;">Aboneliklerim</h2>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" id="excelIndirBtn" class="geri-btn" style="width: auto; padding: 6px 10px; font-size: 12px; margin: 0;">📊 Excel</button>
+                  <button type="button" id="pdfRaporBtn" class="geri-btn" style="width: auto; padding: 6px 10px; font-size: 12px; margin: 0;">🖨️ PDF / Yazdır</button>
+                </div>
+              </div>
+              <p id="toplam"></p>
+              <ul id="liste"></ul>
+            </div>
+
+            <!-- 3. Harcama Analitiği & Grafik -->
+            <div class="kart analitik-kart">
+              <h2>📊 Harcama Analitiği & İstatistikler</h2>
+              
+              <div id="analitikOzetGrid" class="analitik-grid"></div>
+
+              <div class="analitik-detay-wrapper">
+                <div class="grafik-kapsayici">
+                  <canvas id="kategoriGrafikCanvas"></canvas>
+                </div>
+                <div id="kategoriListe" class="kategori-liste"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- 2. TAKVİM & PLANLAR MODÜLÜ -->
+      <div id="takvimModul" class="modul-sayfa gizli">
+        <div class="takvim-container kart">
+          <div class="takvim-header">
+            <button type="button" id="oncekiAyBtn" class="takvim-nav-btn">&lt;</button>
+            <h2 id="takvimAyYil">Ocak 2026</h2>
+            <button type="button" id="sonrakiAyBtn" class="takvim-nav-btn">&gt;</button>
+          </div>
+
+          <div class="takvim-gunler-baslik">
+            <div>Pzt</div><div>Sal</div><div>Çar</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
+          </div>
+
+          <div id="takvimGrid" class="takvim-grid"></div>
+
+          <div class="plan-ekle-form">
+            <h3>Hızlı Plan / Not Ekle</h3>
+            <div class="plan-form-grup">
+              <div class="tarihAlan" style="flex: 1; min-width: 0;">
+                <input type="text" id="planTarihMetin" placeholder="gg.aa.yyyy" inputmode="numeric" maxlength="10" autocomplete="off">
+                <button id="planTakvimBtn" class="takvimBtn" type="button" aria-label="Takvimden seç">📅</button>
+                <input type="date" id="planTarihSec" class="tarihSec" tabindex="-1" aria-hidden="true">
+              </div>
+              <input type="text" id="planMetinInput" placeholder="Planınızı veya notunuzu yazın...">
+              <button type="button" id="planEkleBtn">Kaydet</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. KLAVYE HIZ TESTİ MODÜLÜ (Tam Sayfa) -->
+      <div id="oyunModul" class="modul-sayfa gizli">
+        <div class="kart" style="width: 100%; margin: 0;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="font-size: 28px; margin-bottom: 6px;">⚡ Klavye Hız Testi (Türkçe)</h2>
+            <p style="color: var(--soluk); margin: 0;">60 saniyede kaç kelime yazabildiğini test et! Yazmaya başladığın an süre saymaya başlar.</p>
+          </div>
+
+          <!-- Süre ve Skor Kartı -->
+          <div style="display: flex; justify-content: center; gap: 24px; margin-bottom: 20px;">
+            <div class="analitik-kutu" style="min-width: 140px; text-align: center; padding: 14px;">
+              <small style="font-size: 12px;">Kalan Süre</small>
+              <strong id="oyunSure" style="font-size: 28px; color: var(--vurgu);">60s</strong>
+            </div>
+            <div class="analitik-kutu" style="min-width: 140px; text-align: center; padding: 14px;">
+              <small style="font-size: 12px;">DKM (WPM)</small>
+              <strong id="oyunDkm" style="font-size: 28px; color: #27ae60;">0</strong>
+            </div>
+            <div class="analitik-kutu" style="min-width: 140px; text-align: center; padding: 14px;">
+              <small style="font-size: 12px;">Doğru / Yanlış</small>
+              <strong id="oyunSkor" style="font-size: 22px; color: var(--yazi);">0 / 0</strong>
+            </div>
+          </div>
+
+          <!-- Kelimelerin Aktığı Geniş Kutu -->
+          <div id="kelimeKutusu" class="kelime-kutusu"></div>
+
+          <!-- Yazı Giriş Alanı -->
+          <div style="display: flex; gap: 16px; margin-top: 20px;">
+            <input type="text" id="oyunInput" placeholder="Yazmaya başlamak için buraya tıkla..." autocomplete="off" spellcheck="false" style="font-size: 22px; padding: 14px 20px;">
+            <button type="button" id="oyunBaslatBtn" class="modal-btn" style="width: 160px; font-size: 16px;">🔄 Yeniden</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Oyun Sonuç Modalı -->
+  <div id="oyunSonucModal" class="modal-overlay gizli">
+    <div class="modal-icerik">
+      <div class="modal-ikon">🏆</div>
+      <h2>Test Tamamlandı!</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;">
+        <div class="analitik-kutu">
+          <small>Yazma Hızı</small>
+          <strong id="modalDkm" style="font-size: 22px; color: var(--vurgu);">0 DKM</strong>
+        </div>
+        <div class="analitik-kutu">
+          <small>Doğruluk Oranı</small>
+          <strong id="modalDogruluk" style="font-size: 22px; color: #27ae60;">%100</strong>
+        </div>
+        <div class="analitik-kutu">
+          <small>Doğru Kelime</small>
+          <strong id="modalDogruSayi" style="font-size: 18px; color: #27ae60;">0</strong>
+        </div>
+        <div class="analitik-kutu">
+          <small>Yanlış Kelime</small>
+          <strong id="modalYanlisSayi" style="font-size: 18px; color: #c0392b;">0</strong>
+        </div>
+      </div>
+      <button id="oyunTekrarBtn" type="button" class="modal-btn">Tekrar Dene</button>
+    </div>
+  </div>
+
+  <!-- Kur Detay ve Grafik Modalı -->
+  <div id="kurDetayModal" class="modal-overlay gizli">
+    <div class="modal-icerik" style="max-width: 650px; width: 95%; text-align: left;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 id="kurModalBaslik" style="margin: 0; font-size: 20px;">Dolar Detayı</h3>
+        <button type="button" id="kurModalKapatBtn" class="sil" style="font-size: 20px;">✕</button>
+      </div>
+
+      <div class="kur-ozet-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;">
+        <div class="kur-ozet-kutu" style="background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--cizgi); text-align: center;">
+          <small style="color: var(--soluk); display: block; font-size: 11px;">Haftalık Değişim</small>
+          <strong id="degisimHaftalik" style="font-size: 14px;">-%0.12</strong>
+        </div>
+        <div class="kur-ozet-kutu" style="background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--cizgi); text-align: center;">
+          <small style="color: var(--soluk); display: block; font-size: 11px;">Aylık Değişim</small>
+          <strong id="degisimAylik" style="font-size: 14px;">+%1.45</strong>
+        </div>
+        <div class="kur-ozet-kutu" style="background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--cizgi); text-align: center;">
+          <small style="color: var(--soluk); display: block; font-size: 11px;">Yıllık Değişim</small>
+          <strong id="degisimYillik" style="font-size: 14px;">+%18.20</strong>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <button type="button" class="grafik-periyot-btn aktif" data-periyot="haftalik" style="flex:1; padding: 6px; border: 1px solid var(--cizgi); background: var(--vurgu); color:#fff; border-radius: 6px; cursor:pointer; font-size: 13px;">Haftalık</button>
+        <button type="button" class="grafik-periyot-btn" data-periyot="aylik" style="flex:1; padding: 6px; border: 1px solid var(--cizgi); background: var(--bg); color: var(--yazi); border-radius: 6px; cursor:pointer; font-size: 13px;">Aylık</button>
+        <button type="button" class="grafik-periyot-btn" data-periyot="yillik" style="flex:1; padding: 6px; border: 1px solid var(--cizgi); background: var(--bg); color: var(--yazi); border-radius: 6px; cursor:pointer; font-size: 13px;">Yıllık</button>
+      </div>
+
+      <div style="position: relative; height: 260px; width: 100%; background: var(--bg); border: 1px solid var(--cizgi); border-radius: 8px; padding: 10px;">
+        <canvas id="kurGrafikCanvas"></canvas>
+      </div>
+
+      <button type="button" id="kurModalKapatAltBtn" class="modal-btn ikincil" style="margin-top: 15px;">Kapat</button>
+    </div>
+  </div>
+
+  <!-- Gün Detay / Plan Ekleme Modalı -->
+  <div id="planModal" class="modal-overlay gizli">
+    <div class="modal-icerik">
+      <h3 id="planModalTarih">01.01.2026 Planları</h3>
+      <div id="modalPlanListe" class="modal-plan-liste"></div>
+      <div class="plan-form-grup" style="margin-top: 15px;">
+        <input type="text" id="modalPlanInput" placeholder="Bu güne yeni plan yaz...">
+        <button type="button" id="modalPlanEkleBtn">Ekle</button>
+      </div>
+      <button type="button" id="modalKapatBtn" class="modal-btn ikincil" style="margin-top: 15px;">Kapat</button>
+    </div>
+  </div>
+
+  <script src="main.js" type="module"></script>
+</body>
+</html>
